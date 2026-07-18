@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "MAC Changer",
-  "version": "1.0",
-  "description": "Send a message to a native host to change the MAC address",
+  "version": "1.1",
+  "description": "Send a message to a native host to change the MAC address hourly or on demand",
   "action": { "default_popup": "popup.html" },
-  "permissions": ["nativeMessaging"]
+  "permissions": ["nativeMessaging", "alarms", "storage"],
+  "background": { "service_worker": "background.js" }
 }
