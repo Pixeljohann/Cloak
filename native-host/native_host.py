@@ -24,7 +24,9 @@ def send_message(message):
 def change_mac_windows(iface, mac):
     script_dir = os.path.dirname(os.path.realpath(__file__))
     ps = os.path.join(script_dir, 'change-mac.ps1')
-    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', ps, '-InterfaceName', iface, '-Mac', mac]
+    # For Windows registry value, pass MAC without separators
+    mac_nosep = ''.join(c for c in mac if c.isalnum())
+    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', ps, '-InterfaceName', iface, '-Mac', mac_nosep]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return {"status": "ok", "output": proc.stdout.strip()}
@@ -51,14 +53,27 @@ def main():
                 break
             iface = msg.get('interface') or msg.get('iface')
             mac = msg.get('mac')
+            # If mac is missing or set to 'random', generate a random locally-administered unicast MAC
+            if not mac or (isinstance(mac, str) and mac.lower() in ('random','rand','auto')):
+                import random
+                # generate 6 random bytes
+                b = [random.randrange(0, 256) for _ in range(6)]
+                # set locally administered bit and clear multicast bit on first byte
+                b[0] = (b[0] & 0b11111100) | 0b00000010
+                mac_colon = ':'.join('{:02x}'.format(x) for x in b)
+                mac = mac_colon
             if not iface or not mac:
                 send_message({"status": "error", "output": "missing interface or mac"})
                 continue
             system = platform.system()
             if system == 'Windows':
+                # For Windows pass mac without separators
                 res = change_mac_windows(iface, mac)
             else:
                 res = change_mac_unix(iface, mac)
+            # include the effective MAC used in the response
+            if isinstance(res, dict):
+                res.setdefault('used_mac', mac)
             send_message(res)
         except Exception:
             send_message({"status": "error", "output": traceback.format_exc()})
