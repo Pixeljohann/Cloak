@@ -1,39 +1,48 @@
-MAC Changer Extension + Native Host
+# MAC Changer Extension + Native Host
 
-This workspace contains a browser extension (unpacked) and a native messaging host that can change a network interface's MAC address.
+This workspace contains a browser extension and a native messaging host that can change a network interface's MAC address on supported Windows systems.
 
-Files:
-- extension/: browser extension (manifest, popup UI)
-- native-host/: native host Python script + PowerShell helper + host manifest template
+## Project layout
+- extension/: the browser extension (manifest, popup UI, background logic)
+- native-host/: the Windows native host, PowerShell helper, and host manifest
 
-Quick install (Chrome on Windows) — summary:
-1. Edit `native-host/com.example.mac_changer.json` and set the `path` to the full path of `native-host\\native_host.py`.
-2. Replace `__CHANGE_THIS_EXTENSION_ID__` in that manifest with your extension id (or install unpacked and update manifest accordingly).
-3. Register the native host by placing the manifest file path into the registry (example):
+## Current setup
+The native host now uses a Node.js-based entrypoint for Windows. The host is launched through a wrapper script and communicates with the extension over the standard native messaging protocol.
 
-   - Registry key (per-user): `HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\com.example.mac_changer` with default value = full path to the manifest JSON.
+## Required dependencies
+- Node.js 16+ (required for the primary host)
+- PowerShell 5+ (required on Windows)
+- Optional: Python 3 (kept only as a fallback/reference implementation)
 
-4. Install the extension unpacked: open `chrome://extensions`, enable developer mode, "Load unpacked" and pick the `extension/` folder.
-5. Ensure Python 3 is installed and accessible; for Windows, PowerShell script requires administrative privileges.
-6. Open the extension popup, enter interface name and MAC, click "Change MAC".
+## Windows setup
+1. Install Node.js and make sure it is available in PATH.
+2. Open the manifest at native-host/com.example.mac_changer.json and update:
+   - the path to the wrapper script native-host/native_host.cmd
+   - the allowed origin to your extension ID
+3. Replace YOUR_EXTENSION_ID in the manifest with your real extension ID.
+4. Register the native host in the registry for Chrome or Edge.
+5. Load the unpacked extension from the extension/ folder in your browser.
+6. Open the popup, enter the interface name and a MAC address, then click Change MAC.
 
-Randomization options
-- To have the native host generate a randomized locally-administered MAC automatically every hour, the extension will send a special `"mac":"random"` request on the hourly alarm. The native host will generate a MAC and apply it.
-- You can trigger a manual randomization by clicking "Randomize Now" in the popup.
-- If you want the hourly behavior to use a fixed MAC instead, save your desired MAC in the popup settings; the hourly job will still randomize by default.
+## Registering the native host
+Use the helper script or create the registry entry manually.
 
-Auto randomization toggle
-- The popup now includes a checkbox "Enable hourly randomization". When checked the extension creates an hourly alarm and will send `"mac":"random"` every hour. When unchecked the alarm is cleared and no automatic randomizations occur.
-
-Registering the native host (quick):
-- Double-click `native-host/register_native_host.reg` or run:
-
+### PowerShell helper
 ```powershell
-regedit /s "C:\Users\Johann\Downloads\New folder (10)\native-host\register_native_host.reg"
+powershell -ExecutionPolicy Bypass -File .\native-host\update_native_host_manifest.ps1 -ExtensionId YOUR_EXTENSION_ID
 ```
 
+### Registry example
+```powershell
+reg add "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.example.mac_changer" /ve /d "C:\path\to\your\workspace\native-host\com.example.mac_changer.json" /f
+```
 
-Notes and security:
-- The native host runs locally and needs admin privileges to change system settings. Use at your own risk.
-- On Linux/macOS the native host attempts to use `ip`/`ifconfig` commands.
-- You must run the PowerShell helper with sufficient privileges; some adapters do not expose a "Network Address" advanced property.
+For Edge, replace the registry path with:
+```powershell
+reg add "HKCU\Software\Microsoft\Edge\NativeMessagingHosts\com.example.mac_changer" /ve /d "C:\path\to\your\workspace\native-host\com.example.mac_changer.json" /f
+```
+
+## Notes
+- The host runs locally and may require elevated privileges to change system networking settings.
+- Some adapters do not expose the properties needed for MAC spoofing, so the operation may fail even when the host is configured correctly.
+- The extension still supports randomization features, including hourly random MAC changes when enabled from the popup.
