@@ -1,27 +1,35 @@
 const hostName = 'com.example.mac_changer';
 
-function ensureAlarm() {
-  // create or reset hourly alarm
-  chrome.alarms.create('hourlyMacChange', { periodInMinutes: 60 });
-}
-
 chrome.runtime.onInstalled.addListener(() => {
-  ensureAlarm();
+  // create alarm only if autoRandom is enabled
+  chrome.storage.local.get('autoRandom', (res) => {
+    if (res && res.autoRandom) {
+      chrome.alarms.create('hourlyMacChange', { periodInMinutes: 60 });
+    }
+  });
 });
 
-// Ensure alarm exists on startup
-ensureAlarm();
+chrome.runtime.onStartup.addListener(() => {
+  chrome.storage.local.get('autoRandom', (res) => {
+    if (res && res.autoRandom) {
+      chrome.alarms.create('hourlyMacChange', { periodInMinutes: 60 });
+    }
+  });
+});
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== 'hourlyMacChange') return;
-  // fetch stored iface/mac and send
-  chrome.storage.local.get(['iface','mac'], (items) => {
+  // check whether autoRandom is still enabled
+  chrome.storage.local.get(['autoRandom','iface'], (items) => {
+    if (!items.autoRandom) {
+      console.log('autoRandom disabled; skipping alarm action');
+      return;
+    }
     const iface = items.iface || '';
     if (!iface) {
       console.warn('Missing iface in storage; skipping native message');
       return;
     }
-    // For automatic hourly randomization, instruct native host to generate a random MAC
     const macToSend = 'random';
     chrome.runtime.sendNativeMessage(hostName, { interface: iface, mac: macToSend }, (response) => {
       if (chrome.runtime.lastError) {

@@ -60,11 +60,26 @@ function updateNext() {
 
 // populate saved values
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['iface','mac'], (items) => {
+  chrome.storage.local.get(['iface','mac','autoRandom'], (items) => {
     if (items.iface) document.getElementById('iface').value = items.iface;
     if (items.mac) document.getElementById('mac').value = items.mac;
+    document.getElementById('autoToggle').checked = !!items.autoRandom;
   });
   updateNext();
   setInterval(updateNext, 1000);
+});
+
+// toggle handler: create or clear alarm
+document.getElementById('autoToggle').addEventListener('change', (e) => {
+  const enabled = e.target.checked;
+  chrome.storage.local.set({ autoRandom: enabled }, () => {
+    document.getElementById('status').textContent = enabled ? 'Hourly randomization enabled' : 'Hourly randomization disabled';
+    if (enabled) {
+      chrome.alarms.create('hourlyMacChange', { periodInMinutes: 60 });
+    } else {
+      chrome.alarms.clear('hourlyMacChange');
+    }
+    updateNext();
+  });
 });
 

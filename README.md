@@ -22,6 +22,9 @@ Randomization options
 - You can trigger a manual randomization by clicking "Randomize Now" in the popup.
 - If you want the hourly behavior to use a fixed MAC instead, save your desired MAC in the popup settings; the hourly job will still randomize by default.
 
+Auto randomization toggle
+- The popup now includes a checkbox "Enable hourly randomization". When checked the extension creates an hourly alarm and will send `"mac":"random"` every hour. When unchecked the alarm is cleared and no automatic randomizations occur.
+
 Registering the native host (quick):
 - Double-click `native-host/register_native_host.reg` or run:
 
