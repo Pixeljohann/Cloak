@@ -21,9 +21,32 @@ def send_message(message):
     sys.stdout.buffer.write(encoded)
     sys.stdout.buffer.flush()
 
-def change_mac_windows(iface, mac):
+def resolve_ps_script_path():
+    candidate_dirs = []
+    if getattr(sys, 'frozen', False):
+        candidate_dirs.extend([
+            os.path.dirname(sys.executable),
+            os.path.dirname(os.path.dirname(sys.executable)),
+            getattr(sys, '_MEIPASS', ''),
+        ])
+
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    ps = os.path.join(script_dir, 'change-mac.ps1')
+    candidate_dirs.extend([script_dir, os.path.dirname(script_dir)])
+
+    for base_dir in candidate_dirs:
+        if not base_dir:
+            continue
+        candidate = os.path.join(base_dir, 'change-mac.ps1')
+        if os.path.exists(candidate):
+            return candidate
+
+    return None
+
+
+def change_mac_windows(iface, mac):
+    ps = resolve_ps_script_path()
+    if not ps:
+        return {"status": "error", "output": "change-mac.ps1 not found"}
     # For Windows registry value, pass MAC without separators
     mac_nosep = ''.join(c for c in mac if c.isalnum())
     cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', ps, '-InterfaceName', iface, '-Mac', mac_nosep]

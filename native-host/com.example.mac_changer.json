@@ -1,9 +1,9 @@
-{
-  "name": "com.example.mac_changer",
-  "description": "Native host to change MAC address",
-  "path": "C:\\Users\\Johann\\Downloads\\New folder (10)\\native-host\\native_host.py",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://__CHANGE_THIS_EXTENSION_ID__/"
-  ]
+﻿{
+    "name":  "com.example.mac_changer",
+    "description":  "Native host to change MAC address",
+    "path":  "C:\\Users\\Johann\\Downloads\\New folder (10)\\native-host\\native_host.cmd",
+    "type":  "stdio",
+    "allowed_origins":  [
+                            "chrome-extension://YOUR_EXTENSION_ID/"
+                        ]
 }
