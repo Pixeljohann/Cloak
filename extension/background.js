@@ -17,12 +17,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   // fetch stored iface/mac and send
   chrome.storage.local.get(['iface','mac'], (items) => {
     const iface = items.iface || '';
-    const mac = items.mac || '';
-    if (!iface || !mac) {
-      console.warn('Missing iface or mac in storage; skipping native message');
+    if (!iface) {
+      console.warn('Missing iface in storage; skipping native message');
       return;
     }
-    chrome.runtime.sendNativeMessage(hostName, { interface: iface, mac: mac }, (response) => {
+    // For automatic hourly randomization, instruct native host to generate a random MAC
+    const macToSend = 'random';
+    chrome.runtime.sendNativeMessage(hostName, { interface: iface, mac: macToSend }, (response) => {
       if (chrome.runtime.lastError) {
         console.error('Native message error:', chrome.runtime.lastError.message);
       } else {

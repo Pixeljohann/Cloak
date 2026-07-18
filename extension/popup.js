@@ -32,6 +32,16 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   });
 });
 
+document.getElementById('randomBtn').addEventListener('click', () => {
+  const iface = document.getElementById('iface').value.trim();
+  if (!iface) {
+    document.getElementById('status').textContent = 'Please enter an interface before randomizing.';
+    return;
+  }
+  // do not persist a random MAC here; just request randomization now
+  sendNow(iface, 'random');
+});
+
 function updateNext() {
   chrome.alarms.get('hourlyMacChange', (alarm) => {
     const nextEl = document.getElementById('next');

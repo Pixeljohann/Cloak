@@ -17,6 +17,19 @@ Quick install (Chrome on Windows) — summary:
 5. Ensure Python 3 is installed and accessible; for Windows, PowerShell script requires administrative privileges.
 6. Open the extension popup, enter interface name and MAC, click "Change MAC".
 
+Randomization options
+- To have the native host generate a randomized locally-administered MAC automatically every hour, the extension will send a special `"mac":"random"` request on the hourly alarm. The native host will generate a MAC and apply it.
+- You can trigger a manual randomization by clicking "Randomize Now" in the popup.
+- If you want the hourly behavior to use a fixed MAC instead, save your desired MAC in the popup settings; the hourly job will still randomize by default.
+
+Registering the native host (quick):
+- Double-click `native-host/register_native_host.reg` or run:
+
+```powershell
+regedit /s "C:\Users\Johann\Downloads\New folder (10)\native-host\register_native_host.reg"
+```
+
+
 Notes and security:
 - The native host runs locally and needs admin privileges to change system settings. Use at your own risk.
 - On Linux/macOS the native host attempts to use `ip`/`ifconfig` commands.
