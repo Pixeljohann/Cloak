@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "MAC Changer",
+  "version": "1.0",
+  "description": "Send a message to a native host to change the MAC address",
+  "action": { "default_popup": "popup.html" },
+  "permissions": ["nativeMessaging"]
+}
